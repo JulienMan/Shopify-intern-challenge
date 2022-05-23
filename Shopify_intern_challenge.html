@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>
+            inventory management
+        </title>
+    </head>
+    <body>
+        <div class = page_title>
+            <h1>Inventory management for "Your company name here"</h1>
+        </div>
+        <div class = add_location_form_wrapper>
+            <form class="add_location_form" autocomplete="off">
+                <label class="label">Warehouse adress</label>
+                <input type="text" name="Location">
+                <label class="label">Warehouse ID</label>
+                <input type="text" name="new Location id">
+                <input type="submit" value="Add new location">
+            </form>
+        </div>
+        <div class = choose_location_form_wrapper>
+            <form class="choose_location_form">
+                <label class="label">Warehouse ID</label>
+                <input type="text" name="Location id">
+                <input type="submit" value="enter location">
+            </form>
+        </div>
+        <div class = info_wrapper>
+            <div class = warehouse_info_wrapper>
+                <div class = warehouse_ID_info>
+                    <label class = label>Warehouse ID : </label>
+                    <label class = label class = warehouse_id_label></label>
+                </div>
+            </div>
+            <div class = warehouse_stock_wrapper>
+                <div class = warehouse_stock_list>
+                    <label class = label>Stock list:</label>
+                    <table class = warehouse_stock_table id="stock_table" border="1">
+                        <tr>
+                            <th>item_id</th>
+                            <th>item_name</th>
+                            <th>amount</th>
+                        </tr>
+                    </table>
+
+                </div>
+                <div class = warehouse_stock_form_wrapper>
+                    <form class = warehouse_stock_form>
+                        <label class="label">item ID</label>
+                        <input type="text" name="item id">
+                        <label class="label">item name</label>
+                        <input type="text" name="item name">
+                        <label class="label">amount</label>
+                        <input type="number" name="stock amount">
+                        <input type="submit" value="modify stock">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+<script>
+    var start = true;
+    var current_warehouse_index = 0;
+    var valid_IDs = [11, 22, 33, 44];
+    var stocks_by_id = [[[111, "doorknob", 5], [112, "door", 4], [113, "door hinge", 11]],
+                        [[115, "sink", 2], [235, "faucet", 100]], 
+                        [[1111, "computer", 1], [1112, "computer mouse", 5], [1113, "keyboard", 12]],
+                        [[2221, "paperclip", 10000]]];
+    
+
+    function add_new_item(id, name, amount){
+        var table = document.getElementById("stock_table");
+        new_row = table.insertRow(table.length);
+        item_id = new_row.insertCell(0);
+        item_name = new_row.insertCell(1);
+        item_amount = new_row.insertCell(2);
+        item_id.innerHTML = id;
+        item_name.innerHTML = name;
+        item_amount.innerHTML = amount;
+    }
+
+    function select_id(id){
+        var index = -1;
+        for (let i = 0; i < valid_IDs.length; i++) {
+            if (valid_IDs[i] == id){
+                index = i;
+                break;
+            }
+        } 
+        if (index != -1){
+            var stock_list = stocks_by_id[index];
+            for (let i = 0; i<stock_list.length; i++){
+                add_new_item(stock_list[i][0], stock_list[i][1], stock_list[i][2]);
+            }
+            var table = document.getElementById("stock_table");
+            for (let i = 0; i<stocks_by_id[current_warehouse_index].length; i++){
+                if (!start){
+                    table.deleteRow(1);
+                }
+            }
+            start = false;
+            current_warehouse_index = index;
+        }
+    }
+
+    function add_stock(index, amount){
+        select_id(current_warehouse_index);
+    }
+
+    select_id(valid_IDs[0]);
+
+    ////////////////////////////////////////////    
+
+    const choose_location_form = document.querySelectorAll('.choose_location_form');
+    const choose_location_submit_input = choose_location_form[0].querySelector('input[type="submit"]');
+
+    function get_choose_location_data(e){
+        e.preventDefault();
+        var formData = new FormData(choose_location_form[0]);
+        var id = formData.get("Location id");
+        select_id(id);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        choose_location_submit_input.addEventListener('click', get_choose_location_data, false);
+    }, false);
+    
+    ///////////////////////////////////////////
+
+    const add_location_form = document.querySelectorAll('.add_location_form');
+    const add_location_submit_input = add_location_form[0].querySelector('input[type="submit"]');
+
+    function get_add_location_data(e){
+        e.preventDefault();
+        var formData = new FormData(add_location_form[0]);
+        var location = formData.get("Location");
+        var id = formData.get("new Location id");
+        index = -1;
+        for (let i = 0; i < valid_IDs.length; i++) {
+            if (valid_IDs[i] == id){
+                index = i;
+                break;
+            }
+        } 
+        if (index == -1){
+            valid_IDs.push(id);
+            stocks_by_id.push([]);
+            select_id(id);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        add_location_submit_input.addEventListener('click', get_add_location_data, false);
+    }, false);
+
+    ///////////////////////////////////////////
+
+    const modify_stock_form = document.querySelectorAll('.warehouse_stock_form');
+    const modify_stock_submit_input = modify_stock_form[0].querySelector('input[type="submit"]');
+
+    function get_modify_stock_data(e){
+        e.preventDefault();
+        var formData = new FormData(modify_stock_form[0]);
+        var item_id = Number(formData.get("item id"));
+        var item_name = formData.get("item name");
+        var stock_amount = Number(formData.get("stock amount"));
+        var stock = stocks_by_id[current_warehouse_index];
+        var index = -1;
+        if (isNaN(item_id) || isNaN(stock_amount)){
+            return;
+        }
+        for (let i = 0; i<stock.length; i++){
+            if (stock[i][0] == item_id){
+                index = i;
+                break;
+            }
+        }
+        if (index != -1){
+            stocks_by_id[current_warehouse_index][index][2]+=stock_amount;
+            add_stock(index, stock_amount);
+        }
+        else{
+            stocks_by_id[current_warehouse_index].push([item_id, item_name, stock_amount])
+            add_new_item(item_id, item_name, stock_amount);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        modify_stock_submit_input.addEventListener('click', get_modify_stock_data, false);
+    }, false);
+    
+</script>
